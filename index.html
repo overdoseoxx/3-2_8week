@@ -140,8 +140,29 @@
     transition:transform .12s ease, background .12s ease, box-shadow .12s ease;
     backdrop-filter: blur(4px);
   }
-  .cheat-btn:hover{ transform:translateY(-2px) scale(1.03); background:rgba(16,54,82,.9); box-shadow:0 10px 20px rgba(0,0,0,.38); }
-  .cheat-btn:active{ transform:translateY(0) scale(0.99); }
+#cheatBtn{
+  position:fixed;
+  top:14px; left:16px;
+  background:rgba(30,60,90,.5);   /* 살짝 투명한 블루, 분리감만 */
+  color:#c0c5cf;                  /* 회색 글씨 */
+  border:none;
+  border-radius:14px;
+  font-family:'Avivi22', sans-serif;
+  padding:16px 28px;              /* 버튼 크기 업 */
+  cursor:pointer;
+  z-index:999;
+  font-size:22px;                 /* 훨씬 크게 */
+  font-weight:700;                /* 더 굵게 */
+  transition:background .2s ease, transform .2s ease, color .2s ease;
+  box-shadow:none !important;     /* 그림자 완전 제거 */
+}
+#cheatBtn:hover{
+  background:rgba(50,100,150,.7); /* hover 시 살짝 강조 */
+  color:#e7ebf0;                  /* hover 시 더 밝은 회색 */
+  transform:scale(1.08);
+  box-shadow:none !important;     /* hover 시에도 그림자 절대 X */
+}
+
 </style>
 </head>
 <body>
@@ -240,11 +261,78 @@ function addWater(a){water+=a;events.push({t:nowMs(),a});
   counter.textContent=Math.floor(water).toString().padStart(9,'0');}
 addEventListener('pointerdown',()=>{addWater(tapPower);showPlusOne(tapPower);},{passive:true});
 
-/* 치트버튼: 누르면 999,999,999(앞에 99 붙인 값)로 채우기 */
+/* 치트버튼: 누르면 팝업 띄운 후 재화 채우기 */
 document.getElementById('cheatBtn').addEventListener('click', (e)=>{
   e.stopPropagation();
-  setWater(999999999);
+
+  // Pretendard 폰트 적용
+  const style = document.createElement('style');
+  style.textContent = `
+  @font-face {
+      font-family: 'Pretendard';
+      src: url('https://cdn.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-Regular.woff') format('woff');
+      font-weight: 400; font-display: swap;
+  }
+  @font-face {
+      font-family: 'Pretendard';
+      src: url('https://cdn.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-SemiBold.woff') format('woff');
+      font-weight: 600; font-display: swap;
+  }
+  `;
+  document.head.appendChild(style);
+
+  const overlay = document.createElement('div');
+  overlay.style.cssText = `
+    position:fixed; inset:0; background:rgba(0,0,0,.55);
+    display:flex; align-items:center; justify-content:center;
+    z-index:9999; backdrop-filter:blur(3px);
+  `;
+
+  const popup = document.createElement('div');
+  popup.style.cssText = `
+    background:rgba(8,28,48,.92); color:#cfe9ff;
+    padding:38px 40px; border-radius:18px;
+    max-width:420px; text-align:center;
+    box-shadow:0 10px 28px rgba(0,0,0,.45);
+    font-family:'Pretendard',sans-serif;
+    line-height:1.7; font-size:18px;
+  `;
+  popup.innerHTML = `
+    <p style="margin-bottom:28px; white-space:pre-line; font-weight:400;">
+      성장은 느리지만 치트는 한순간이야. 진짜로?
+      <br>물 한 방울씩 모으는 재미, 버리는 거 확정?
+    </p>
+    <div style="display:flex; justify-content:center; gap:16px;">
+      <button id="cancelCheat" style="
+        padding:8px 22px; border-radius:12px; background:#007bff;
+        color:#fff; border:none; font-weight:600; font-size:16px;
+        font-family:'Pretendard',sans-serif;
+        cursor:pointer; transition:.15s; box-shadow:0 3px 10px rgba(0,0,0,.25);
+      ">취소</button>
+      <button id="confirmCheat" style="
+        padding:8px 22px; border-radius:12px; background:rgba(14,48,74,.8);
+        color:#d7f9ff; border:none; font-weight:600; font-size:16px;
+        font-family:'Pretendard',sans-serif;
+        cursor:pointer; transition:.15s; box-shadow:0 3px 10px rgba(0,0,0,.25);
+      ">확인</button>
+    </div>
+  `;
+  overlay.appendChild(popup);
+  document.body.appendChild(overlay);
+
+  // 호버 효과
+  popup.querySelectorAll('button').forEach(btn=>{
+    btn.addEventListener('mouseover',()=>btn.style.filter='brightness(1.15)');
+    btn.addEventListener('mouseout',()=>btn.style.filter='brightness(1)');
+  });
+
+  document.getElementById('cancelCheat').onclick = () => overlay.remove();
+  document.getElementById('confirmCheat').onclick = () => {
+    setWater(999999999);
+    overlay.remove();
+  };
 });
+
 
 /* 클릭 사운드 풀 */
 const proto=document.getElementById('clickProto');const poolSize=8;const clickPool=[];let poolIdx=0;
@@ -663,3 +751,4 @@ function nudge(el){el.style.transform='translateX(-3px)';setTimeout(()=>el.style
 
 </body>
 </html>
+
